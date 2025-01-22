@@ -161,7 +161,7 @@ if (MISSKEY_ACCESSTOKEN && OPENAI_AUTHCODE) {
                         var msgs = [{"role": "system", "content": prompt}]
 
                         //바로 답변하지 않고 gpt-4o-mini에게 전달
-                        var judgePrompt = `다음 프롬프트가 (1) 챗봇에게 심리적인 상담이나 감정의 분석을 요청하고 있는지, (2) 특정 시간에 챗봇에게 다시 리마인드해 달라는 얘기가 있는지, 만약 그렇다면 지금이 ${rawdate}인 점을 고려할 때 리마인드해야 할 시각은 언제인지에 대한 ISO 8601 형식, (3) 챗봇에게 맞팔로우해 달라는 언급이 있었는지 결정해서, {"requestCounseling": "true/false", "remind": "true/false", "remindDateandTime": "ISO 8601 dateTime", "followBack": "true/false"} 과 같은 JSON 형식으로 반환해줘:`
+                        var judgePrompt = `다음 프롬프트가 (1) 챗봇에게 심리적인 상담이나 감정의 분석을 요청하고 있는지, (2) 특정 시간에 챗봇에게 다시 리마인드해 달라는 얘기가 있는지, 만약 그렇다면 지금이 ${rawdate}인 점을 고려할 때 리마인드해야 할 시각은 언제인지에 대한 ISO 8601 형식(없으면 빈 문자열), (3) 챗봇에게 맞팔로우해 달라는 언급이 있었는지 결정해서, '{"requestCounseling": true/false, "remind": true/false, "remindDateandTime": "ISO 8601 dateTime", "followBack": true/false}' 과 같은 JSON 형식으로 반환해줘:`
 
                         var fetchJudgement = await fetch('https://api.openai.com/v1/chat/completions', {
                             body: JSON.stringify({
@@ -176,8 +176,13 @@ if (MISSKEY_ACCESSTOKEN && OPENAI_AUTHCODE) {
                             }
                         })
                         let judgementJSON = await fetchJudgement.json()
-                        let judgementResult = JSON.parse('{'+judgementJSON.choices[0].message.content.split('{')[1].split('}')[0]+'}')
+                        const jsonRegex = /{(?:[^{}]|(?<rec>{(?:[^{}]|\\k<rec>)*}))*}/g
+                        const matches = judgementJSON.choices[0].message.content.match(jsonRegex)
 
+                        if (matches.length == 0) {
+                            matches.push({requestCounseling: false, remind: false, remindDateandTime: "", followBack: false})
+                        }
+                        let judgementResult = JSON.parse(matches[0])
 
                         //리마인드 여부, 있으면 값 저장
                         if (judgementResult.remind) {
