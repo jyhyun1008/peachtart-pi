@@ -254,7 +254,7 @@ if (MISSKEY_ACCESSTOKEN && OPENAI_AUTHCODE) {
                                                 if (formerNoteJSON.user.id == noteUserId) {
                                                     text = formerNoteJSON.text + '\n' + text
                                                     if (formerNoteJSON.replyId) {
-                                                        shiftThread(formerNoteJSON.replyId)
+                                                        await shiftThread(formerNoteJSON.replyId)
                                                     }
                                                 }
                                             }
@@ -276,20 +276,18 @@ if (MISSKEY_ACCESSTOKEN && OPENAI_AUTHCODE) {
                                                 if (laterNoteFiltered.length > 0) {
                                                     text = text + '\n' + laterNoteFiltered[0].text
                                                     if (laterNoteFiltered[0].repliesCount > 0){
-                                                        pushThread(laterNoteFiltered[0].id)
+                                                        await pushThread(laterNoteFiltered[0].id)
                                                     }
                                                 }
                                             }
 
-                                            (async () => {
-                                                if (diary.replyId) {
-                                                    await shiftThread(diary.replyId)
-                                                }
-                                                if (diary.repliesCount > 0) {
-                                                    await pushThread(diary.id)
-                                                }
-                                                msgs.push({ role: 'user', content: '상담 내용: '+text})
-                                            })()
+                                            if (diary.replyId) {
+                                                await shiftThread(diary.replyId)
+                                            }
+                                            if (diary.repliesCount > 0) {
+                                                await pushThread(diary.id)
+                                            }
+                                            msgs.push({ role: 'user', content: '상담 내용: '+text})
                                         }
                                     } else {
                                         msgs.push({ role: 'system', content: '상대가 심리적인 상담이나 감정의 분석을 요청헀으나 #todaypi 해시태그로 작성된 노트가 없었습니다. 유저에게 #todaypi 해시태그로 노트를 작성할 것을 권유하세요.'})
