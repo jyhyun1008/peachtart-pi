@@ -278,6 +278,7 @@ if (MISSKEY_ACCESSTOKEN && OPENAI_AUTHCODE) {
                                                 }
                                             }
                                         }
+
                                         (async () => {
                                             if (diary.replyId) {
                                                 await shiftThread(diary.replyId)
@@ -335,9 +336,9 @@ if (MISSKEY_ACCESSTOKEN && OPENAI_AUTHCODE) {
                 generateAnswer(mention)
             }
             
-            setTimeout(() => {
-                location.reload(true)
-            }, 20000)
+            // setTimeout(() => {
+            //     location.reload(true)
+            // }, 20000)
         }
     }
 
