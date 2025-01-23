@@ -214,84 +214,91 @@ if (MISSKEY_ACCESSTOKEN && OPENAI_AUTHCODE) {
                         if (judgementResult.requestCounseling) {
                             //심리상담 요청에 대한 반응
                             if (isFollowed) {
-                                //노트 타래 10개 체크
-                                var diaryData = await fetch(`https://${HOST}/api/notes/search`, {
-                                    method: 'POST',
-                                    headers: {
-                                        'content-type': 'application/json',
-                                        'Authorization': `Bearer ${MISSKEY_ACCESSTOKEN}`,
-                                    },
-                                    body: JSON.stringify({
-                                        untilId: noteId,
-                                        userId: noteUserId,
-                                        limit: 10,
-                                        query: `#${HASHTAG}`
-                                    }),
-                                    credentials: 'omit'
-                                    }
-                                )
-                                var diaryArray = await diaryData.json()
-                                if (diaryArray.length > 0) {
 
-                                    msgs.push({ role: 'system', content: 'The user requested psychological counseling or emotional analysis.'})
-                                    for await (let diary of diaryArray) {
-                                        let text = diary.text
-                                        async function shiftThread(Id) {
-                                            var formerNote = await fetch(`https://${HOST}/api/notes/show`, {
-                                                method: 'POST',
-                                                headers: {
-                                                    'content-type': 'application/json',
-                                                    'Authorization': `Bearer ${MISSKEY_ACCESSTOKEN}`,
-                                                },
-                                                body: JSON.stringify({
-                                                    noteId: Id,
-                                                }),
-                                                credentials: 'omit'
-                                            })
-                                            var formerNoteJSON = await formerNote.json()
-                                            if (formerNoteJSON.user.id == noteUserId) {
-                                                text = formerNoteJSON.text + '\n' + text
-                                                if (formerNoteJSON.replyId) {
-                                                    shiftThread(formerNoteJSON.replyId)
+                                async function getTodayPiNotes() {
+                                    //노트 타래 10개 체크
+                                    var diaryData = await fetch(`https://${HOST}/api/notes/search`, {
+                                        method: 'POST',
+                                        headers: {
+                                            'content-type': 'application/json',
+                                            'Authorization': `Bearer ${MISSKEY_ACCESSTOKEN}`,
+                                        },
+                                        body: JSON.stringify({
+                                            untilId: noteId,
+                                            userId: noteUserId,
+                                            limit: 10,
+                                            query: `#${HASHTAG}`
+                                        }),
+                                        credentials: 'omit'
+                                        }
+                                    )
+                                    var diaryArray = await diaryData.json()
+                                    if (diaryArray.length > 0) {
+
+                                        msgs.push({ role: 'system', content: 'The user requested psychological counseling or emotional analysis.'})
+                                        for await (let diary of diaryArray) {
+                                            let text = diary.text
+                                            async function shiftThread(Id) {
+                                                var formerNote = await fetch(`https://${HOST}/api/notes/show`, {
+                                                    method: 'POST',
+                                                    headers: {
+                                                        'content-type': 'application/json',
+                                                        'Authorization': `Bearer ${MISSKEY_ACCESSTOKEN}`,
+                                                    },
+                                                    body: JSON.stringify({
+                                                        noteId: Id,
+                                                    }),
+                                                    credentials: 'omit'
+                                                })
+                                                var formerNoteJSON = await formerNote.json()
+                                                if (formerNoteJSON.user.id == noteUserId) {
+                                                    text = formerNoteJSON.text + '\n' + text
+                                                    if (formerNoteJSON.replyId) {
+                                                        shiftThread(formerNoteJSON.replyId)
+                                                    }
                                                 }
                                             }
-                                        }
-                                        async function pushThread(Id) {
-                                            var laterNote = await fetch(`https://${HOST}/api/notes/replies`, {
-                                                method: 'POST',
-                                                headers: {
-                                                    'content-type': 'application/json',
-                                                    'Authorization': `Bearer ${MISSKEY_ACCESSTOKEN}`,
-                                                },
-                                                body: JSON.stringify({
-                                                    noteId: Id,
-                                                    untilId: noteId,
-                                                }),
-                                                credentials: 'omit'
-                                            })
-                                            var laterNoteJSON = await laterNote.json()
-                                            var laterNoteFiltered = laterNoteJSON.filter((note) => note.user.id == noteUserId)
-                                            if (laterNoteFiltered.length > 0) {
-                                                text = text + '\n' + laterNoteFiltered[0].text
-                                                if (laterNoteFiltered[0].repliesCount > 0){
-                                                    pushThread(laterNoteFiltered[0].id)
+                                            async function pushThread(Id) {
+                                                var laterNote = await fetch(`https://${HOST}/api/notes/replies`, {
+                                                    method: 'POST',
+                                                    headers: {
+                                                        'content-type': 'application/json',
+                                                        'Authorization': `Bearer ${MISSKEY_ACCESSTOKEN}`,
+                                                    },
+                                                    body: JSON.stringify({
+                                                        noteId: Id,
+                                                        untilId: noteId,
+                                                    }),
+                                                    credentials: 'omit'
+                                                })
+                                                var laterNoteJSON = await laterNote.json()
+                                                var laterNoteFiltered = laterNoteJSON.filter((note) => note.user.id == noteUserId)
+                                                if (laterNoteFiltered.length > 0) {
+                                                    text = text + '\n' + laterNoteFiltered[0].text
+                                                    if (laterNoteFiltered[0].repliesCount > 0){
+                                                        pushThread(laterNoteFiltered[0].id)
+                                                    }
                                                 }
                                             }
-                                        }
 
-                                        (async () => {
-                                            if (diary.replyId) {
-                                                await shiftThread(diary.replyId)
-                                            }
-                                            if (diary.repliesCount > 0) {
-                                                await pushThread(diary.id)
-                                            }
-                                            msgs.push({ role: 'user', content: '상담 내용: '+text})
-                                        })()
+                                            (async () => {
+                                                if (diary.replyId) {
+                                                    await shiftThread(diary.replyId)
+                                                }
+                                                if (diary.repliesCount > 0) {
+                                                    await pushThread(diary.id)
+                                                }
+                                                msgs.push({ role: 'user', content: '상담 내용: '+text})
+                                            })()
+                                        }
+                                    } else {
+                                        msgs.push({ role: 'system', content: '상대가 심리적인 상담이나 감정의 분석을 요청헀으나 #todaypi 해시태그로 작성된 노트가 없었습니다. 유저에게 #todaypi 해시태그로 노트를 작성할 것을 권유하세요.'})
                                     }
-                                } else {
-                                    msgs.push({ role: 'system', content: '상대가 심리적인 상담이나 감정의 분석을 요청헀으나 #todaypi 해시태그로 작성된 노트가 없었습니다. 유저에게 #todaypi 해시태그로 노트를 작성할 것을 권유하세요.'})
                                 }
+
+                                (async () => {
+                                    await getTodayPiNotes()
+                                })()
 
                             }
                         }
