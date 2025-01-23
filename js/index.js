@@ -234,7 +234,7 @@ if (MISSKEY_ACCESSTOKEN && OPENAI_AUTHCODE) {
                                 if (diaryArray.length > 0) {
 
                                     msgs.push({ role: 'system', content: 'The user requested psychological counseling or emotional analysis.'})
-                                    for (let diary of diaryArray) {
+                                    for await (let diary of diaryArray) {
                                         let text = diary.text
                                         async function shiftThread(Id) {
                                             var formerNote = await fetch(`https://${HOST}/api/notes/show`, {
