@@ -233,6 +233,7 @@ if (MISSKEY_ACCESSTOKEN && OPENAI_AUTHCODE) {
                                 var diaryArray = await diaryData.json()
                                 if (diaryArray.length > 0) {
 
+                                    msgs.push({ role: 'system', content: 'The user requested psychological counseling or emotional analysis.'})
                                     for (let diary of diaryArray) {
                                         let text = diary.text
                                         async function shiftThread(Id) {
