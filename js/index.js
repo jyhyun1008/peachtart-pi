@@ -296,9 +296,7 @@ if (MISSKEY_ACCESSTOKEN && OPENAI_AUTHCODE) {
                                     }
                                 }
 
-                                (async () => {
-                                    await getTodayPiNotes()
-                                })()
+                                await getTodayPiNotes()
 
                             }
                         }
