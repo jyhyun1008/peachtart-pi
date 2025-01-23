@@ -279,10 +279,10 @@ if (MISSKEY_ACCESSTOKEN && OPENAI_AUTHCODE) {
                                             }
                                         }
                                         if (diary.replyId) {
-                                            shiftThread(diary.replyId)
+                                            await shiftThread(diary.replyId)
                                         }
                                         if (diary.repliesCount > 0) {
-                                            pushThread(diary.noteId)
+                                            await pushThread(diary.noteId)
                                         }
                                         msgs.push({ role: 'user', content: '상담 내용: '+text})
                                     }
