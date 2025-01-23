@@ -274,7 +274,7 @@ if (MISSKEY_ACCESSTOKEN && OPENAI_AUTHCODE) {
                                             if (laterNoteFiltered.length > 0) {
                                                 text = text + '\n' + laterNoteFiltered[0].text
                                                 if (laterNoteFiltered[0].repliesCount > 0){
-                                                    pushThread(laterNoteFiltered[0].noteId)
+                                                    pushThread(laterNoteFiltered[0].id)
                                                 }
                                             }
                                         }
@@ -284,7 +284,7 @@ if (MISSKEY_ACCESSTOKEN && OPENAI_AUTHCODE) {
                                                 await shiftThread(diary.replyId)
                                             }
                                             if (diary.repliesCount > 0) {
-                                                await pushThread(diary.noteId)
+                                                await pushThread(diary.id)
                                             }
                                             msgs.push({ role: 'user', content: '상담 내용: '+text})
                                         })()
